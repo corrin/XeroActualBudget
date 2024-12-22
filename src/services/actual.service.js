@@ -1,44 +1,44 @@
-import pkg from '@actual-app/api';
-const { ActualAPI } = pkg;
+import actual from '@actual-app/api';
+import { join } from 'path';
 
-let actual = null;
+let initialized = false;
 
+// Define a platform-compatible data directory
+const dataDir = join(process.cwd(), 'data'); // Resolves to "<current_working_directory>/data"
+
+// Initialize the Actual API
 export async function initializeActual() {
-  if (!actual) {
-    actual = new ActualAPI();
+  if (!initialized) {
     await actual.init({
-      serverURL: process.env.ACTUAL_SERVER_URL || 'http://localhost:5006',
-      password: process.env.ACTUAL_PASSWORD
+      dataDir: dataDir,
     });
+    initialized = true;
   }
-  return actual;
 }
 
+// Fetch categories from Actual Budget
 export async function getActualCategories() {
-  const actual = await initializeActual();
-  const categories = await actual.getCategories();
-  return categories.map(category => ({
-    id: category.id,
-    name: category.name,
-    type: category.type,
-    group: category.group
-  }));
+  try {
+    await initializeActual();
+    const categories = await actual.getCategories();
+    return categories;
+  } catch (error) {
+    console.error('Error fetching Actual categories:', error);
+    throw error;
+  }
 }
 
+// Sync categories based on mappings
 export async function syncCategories(mappings) {
-  const actual = await initializeActual();
-
-  for (const mapping of mappings) {
-    try {
-      await actual.updateCategory({
-        id: mapping.actualCategoryId,
-        metadata: {
-          xeroAccountId: mapping.xeroAccountId
-        }
+  try {
+    await initializeActual();
+    for (const mapping of mappings) {
+      await actual.updateCategory(mapping.actualCategoryId, {
+        xeroAccountId: mapping.xeroAccountId,
       });
-    } catch (error) {
-      console.error(`Failed to update category ${mapping.actualCategoryId}:`, error);
-      throw error;
     }
+  } catch (error) {
+    console.error('Error syncing categories:', error);
+    throw error;
   }
 }

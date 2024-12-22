@@ -7,5 +7,10 @@ export const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID,
   clientSecret: process.env.XERO_CLIENT_SECRET,
   redirectUris: [process.env.XERO_REDIRECT_URI],
-  scopes: 'offline_access accounting.transactions.read accounting.contacts.read'
+  scopes: [
+    'offline_access',
+    'accounting.transactions.read',
+    'accounting.contacts.read',
+    'accounting.settings.read',
+  ], // Ensure this is an array
 });
