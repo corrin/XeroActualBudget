@@ -1,17 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { join } from 'path';
+
+// Get the project root directory
+const projectRoot = process.cwd();
 
 export default defineConfig({
-  root: 'src/client', // Set the root to the client directory
+  root: 'src/client',
   plugins: [react()],
-  server: {
-    port: 5173,
-    host: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
-    },
-  },
+  build: {
+    // Change the build output directory
+    outDir: join(projectRoot, 'dist'),
+    // Ensure we clear the output directory before building
+    emptyOutDir: true,
+    // Generate sourcemaps for better debugging
+    sourcemap: true
+  }
 });

@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import { errorHandler } from '../middleware/errorHandler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = join(__dirname, '../..');
 
 export function configureServer() {
   const app = express();
@@ -12,18 +13,22 @@ export function configureServer() {
   app.use(cors());
   app.use(express.json());
 
-  // Serve static files in production
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(join(__dirname, '../../dist')));
-    app.get('/', (req, res) => {
-      res.sendFile(join(__dirname, '../../dist/index.html'));
-    });
-  } else {
-    // In development, redirect root to Vite dev server
-    app.get('/', (req, res) => {
-      res.redirect('http://localhost:5173');
-    });
-  }
+  // Always serve static files from the dist directory
+  const distPath = join(projectRoot, 'dist');
+  console.log('Serving static files from:', distPath);
+
+  app.use(express.static(distPath));
+
+  // API routes will be added in index.js
+
+  // Serve index.html for all non-API routes (SPA support)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      next();
+      return;
+    }
+    res.sendFile(join(distPath, 'index.html'));
+  });
 
   // Error handling middleware should be last
   app.use(errorHandler);

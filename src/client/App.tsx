@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CategoryMapper } from './components/CategoryMapper';
 import { useCategories } from './hooks/useCategories';
-import { saveMappings, connectToXero } from './services/api';
+import { saveMappings } from './services/api';
 import { CategoryMapping } from './types';
 
 export default function App() {
   const { xeroAccounts, actualCategories, isLoading, error } = useCategories();
   const [mappings, setMappings] = useState<CategoryMapping[]>([]);
 
-  const handleConnect = () => {
-    window.location.href = '/api/xero/connect';
-  };
+  // Automatically redirect to Xero auth if not authenticated
+  useEffect(() => {
+    if (error?.message?.includes('Not authenticated with Xero')) {
+      window.location.href = '/api/xero/connect';
+    }
+  }, [error]);
 
   const handleMappingChange = (xeroAccountId: string, actualCategoryId: string) => {
     setMappings(prev => {
@@ -36,22 +39,18 @@ export default function App() {
     }
   };
 
+  // Show loading state
   if (isLoading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-600">Error: {error.message}</div>;
 
+  // Show other errors (not auth related)
+  if (error && !error.message.includes('Not authenticated with Xero')) {
+    return <div className="p-4 text-red-600">Error: {error.message}</div>;
+  }
+
+  // Show main interface
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Category Mapping</h1>
-      {xeroAccounts.length === 0 && (
-        <div className="mb-4">
-          <button
-            onClick={handleConnect}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            Connect to Xero
-          </button>
-        </div>
-      )}
       <div className="space-y-4">
         {xeroAccounts.map(account => (
           <CategoryMapper
@@ -62,12 +61,14 @@ export default function App() {
           />
         ))}
       </div>
-      <button
-        onClick={handleSave}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Save Mappings
-      </button>
+      {xeroAccounts.length > 0 && (
+        <button
+          onClick={handleSave}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Save Mappings
+        </button>
+      )}
     </div>
   );
 }

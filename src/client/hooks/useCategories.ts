@@ -10,14 +10,19 @@ export function useCategories() {
 
   useEffect(() => {
     async function loadCategories() {
+      console.log('Starting to load categories...');
       try {
+        console.log('Fetching Xero accounts...');
         const [accounts, categories] = await Promise.all([
           fetchXeroAccounts(),
           fetchActualCategories()
         ]);
+        console.log('Received Xero accounts:', accounts);
+        console.log('Received Actual categories:', categories);
         setXeroAccounts(accounts);
         setActualCategories(categories);
       } catch (err) {
+        console.error('Error loading categories:', err);
         setError(err instanceof Error ? err : new Error('Failed to load categories'));
       } finally {
         setIsLoading(false);

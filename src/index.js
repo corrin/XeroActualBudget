@@ -15,13 +15,15 @@ app.use('/api/mappings', mappingsRoutes);
 
 async function startServer() {
   try {
-    // Setup ngrok - this must succeed for development
-    const ngrokUrl = await setupNgrok();
-    process.env.XERO_REDIRECT_URI = `${ngrokUrl}/api/xero/callback`;
-    console.log('Xero callback URL:', process.env.XERO_REDIRECT_URI);
+    let serverUrl = `http://localhost:${port}`;
+
+    // Setup ngrok in development
+    if (process.env.NODE_ENV === 'development') {
+      serverUrl = await setupNgrok();
+    }
 
     app.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
+      console.log(`Server running at ${serverUrl}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

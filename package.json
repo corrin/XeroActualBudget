@@ -15,12 +15,13 @@
     "xero-node": "4.36.0"
   },
   "scripts": {
+    "dev": "concurrently --kill-others-on-fail --handle-input --prefix \"[{name}]\" --names \"server,client\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "vite build",
     "dev:client": "vite",
     "dev:server": "cross-env NODE_ENV=development node --no-deprecation src/index.js",
     "dev:bolt": "cross-env NODE_ENV=development BOLT_ENV=true node --no-deprecation src/index.js",
-    "dev": "concurrently --kill-others-on-fail --handle-input --prefix \"[{name}]\" --names \"server,client\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm:dev:server\" \"npm:dev:client\"",
     "dev:local": "concurrently --kill-others-on-fail --handle-input --prefix \"[{name}]\" --names \"server,client\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm run dev:bolt\" \"npm:dev:client\"",
-    "build": "vite build",
+    "dev:with-build": "npm run build && npm run dev:server",
     "serve": "vite preview",
     "start": "cross-env NODE_ENV=production node --no-deprecation src/index.js"
   },
