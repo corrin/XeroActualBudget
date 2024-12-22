@@ -3,7 +3,7 @@ import { connectXero, handleCallback, getAccounts } from '../controllers/xero.co
 
 const router = express.Router();
 
-router.get('/connect/xero', connectXero);
+router.get('/connect', connectXero);
 router.get('/callback', handleCallback);
 router.get('/accounts', getAccounts);
 

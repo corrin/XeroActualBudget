@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { CategoryMapper } from './components/CategoryMapper';
 import { useCategories } from './hooks/useCategories';
-import { saveMappings } from './services/api';
+import { saveMappings, connectToXero } from './services/api';
 import { CategoryMapping } from './types';
 
 export default function App() {
   const { xeroAccounts, actualCategories, isLoading, error } = useCategories();
   const [mappings, setMappings] = useState<CategoryMapping[]>([]);
+
+  const handleConnect = () => {
+    window.location.href = '/api/xero/connect';
+  };
 
   const handleMappingChange = (xeroAccountId: string, actualCategoryId: string) => {
     setMappings(prev => {
@@ -38,6 +42,16 @@ export default function App() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Category Mapping</h1>
+      {xeroAccounts.length === 0 && (
+        <div className="mb-4">
+          <button
+            onClick={handleConnect}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Connect to Xero
+          </button>
+        </div>
+      )}
       <div className="space-y-4">
         {xeroAccounts.map(account => (
           <CategoryMapper

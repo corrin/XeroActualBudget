@@ -3,6 +3,7 @@ import { getCategories } from '../controllers/actual.controller.js';
 
 const router = express.Router();
 
-router.get('/api/actual/categories', getCategories);
+// Remove /api/actual prefix since it's already handled in index.js
+router.get('/categories', getCategories);
 
 export default router;

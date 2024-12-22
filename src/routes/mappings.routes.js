@@ -3,6 +3,7 @@ import { saveMappings } from '../controllers/mappings.controller.js';
 
 const router = express.Router();
 
-router.post('/api/mappings', saveMappings);
+// Remove /api prefix since it's already handled in index.js
+router.post('/', saveMappings);
 
 export default router;
