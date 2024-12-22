@@ -1,3 +1,3 @@
 # XeroActualBudget
 
-[Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/corrin/XeroActualBudget)
+This syncs Xero to Actual Budget.  Intended to provide small business envelope budgeting
