@@ -1,22 +1,33 @@
 import actual from '@actual-app/api';
+import dotenv from 'dotenv';
 import { join } from 'path';
+dotenv.config();
 
 let initialized = false;
 
 // Define a platform-compatible data directory
-const dataDir = join(process.cwd(), 'data'); // Resolves to "<current_working_directory>/data"
+const dataDir = join(process.cwd(), 'data');
 
-// Initialize the Actual API
 export async function initializeActual() {
   if (!initialized) {
     await actual.init({
-      dataDir: dataDir,
+      dataDir: dataDir, // Local directory for budget data
+      serverURL: process.env.ACTUAL_SERVER_URL, // URL of the Actual Budget server
+      password: process.env.ACTUAL_PASSWORD, // Password for the Actual server
     });
+
+    // Download the budget using ACTUAL_SYNC_ID and encryption key
+    const syncId = process.env.ACTUAL_SYNC_ID;
+    if (!syncId) {
+      throw new Error('ACTUAL_SYNC_ID is not defined in .env');
+    }
+
+    const encryptionKey = process.env.ACTUAL_ENCRYPTION_KEY;
+    await actual.downloadBudget(syncId, encryptionKey ? { password: encryptionKey } : {});
     initialized = true;
   }
 }
 
-// Fetch categories from Actual Budget
 export async function getActualCategories() {
   try {
     await initializeActual();
@@ -28,7 +39,6 @@ export async function getActualCategories() {
   }
 }
 
-// Sync categories based on mappings
 export async function syncCategories(mappings) {
   try {
     await initializeActual();
@@ -37,6 +47,7 @@ export async function syncCategories(mappings) {
         xeroAccountId: mapping.xeroAccountId,
       });
     }
+    console.log('Categories synced successfully');
   } catch (error) {
     console.error('Error syncing categories:', error);
     throw error;
