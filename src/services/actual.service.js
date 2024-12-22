@@ -5,32 +5,41 @@ dotenv.config();
 
 let initialized = false;
 
-// Define a platform-compatible data directory
-const dataDir = join(process.cwd(), 'data');
-
 export async function initializeActual() {
   if (!initialized) {
-    await actual.init({
-      dataDir: dataDir, // Local directory for budget data
-      serverURL: process.env.ACTUAL_SERVER_URL, // URL of the Actual Budget server
-      password: process.env.ACTUAL_PASSWORD, // Password for the Actual server
-    });
+    try {
+      // Step 1: Initialize the API
+      await actual.init({
+        dataDir: join(process.cwd(), 'data'), // Local directory for cached data
+        serverURL: process.env.ACTUAL_SERVER_URL, // URL of the Actual server
+        password: process.env.ACTUAL_PASSWORD, // Login password for the server
+      });
 
-    // Download the budget using ACTUAL_SYNC_ID and encryption key
-    const syncId = process.env.ACTUAL_SYNC_ID;
-    if (!syncId) {
-      throw new Error('ACTUAL_SYNC_ID is not defined in .env');
+      // Step 2: Download the budget
+      const syncId = process.env.ACTUAL_SYNC_ID;
+      if (!syncId) {
+        throw new Error('ACTUAL_SYNC_ID is not defined in .env');
+      }
+
+      const encryptionKey = process.env.ACTUAL_ENCRYPTION_KEY;
+      console.log('Downloading budget with syncId:', syncId);
+      await actual.downloadBudget(syncId, encryptionKey ? { password: encryptionKey } : {});
+      console.log('Budget downloaded successfully');
+
+      initialized = true;
+    } catch (error) {
+      console.error('Error initializing Actual API:', error);
+      throw error;
     }
-
-    const encryptionKey = process.env.ACTUAL_ENCRYPTION_KEY;
-    await actual.downloadBudget(syncId, encryptionKey ? { password: encryptionKey } : {});
-    initialized = true;
   }
 }
 
 export async function getActualCategories() {
   try {
+    // Ensure the Actual API is initialized
     await initializeActual();
+
+    // Fetch categories
     const categories = await actual.getCategories();
     return categories;
   } catch (error) {
@@ -41,7 +50,10 @@ export async function getActualCategories() {
 
 export async function syncCategories(mappings) {
   try {
+    // Ensure the Actual API is initialized
     await initializeActual();
+
+    // Sync categories with mappings
     for (const mapping of mappings) {
       await actual.updateCategory(mapping.actualCategoryId, {
         xeroAccountId: mapping.xeroAccountId,
