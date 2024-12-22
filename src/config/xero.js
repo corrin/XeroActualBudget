@@ -12,19 +12,14 @@ const scopes = [
   'accounting.contacts.read'
 ];
 
-// Initialize Xero client with explicit configuration
 export const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID,
   clientSecret: process.env.XERO_CLIENT_SECRET,
   redirectUris: [process.env.XERO_REDIRECT_URI],
   scopes: scopes,
-  state: 'returnToHome', // Add a state parameter for security
-  httpTimeout: 3000, // Increase timeout
-  grantType: 'authorization_code'
+  httpTimeout: 3000
 });
 
-// Add helper methods
 xero.setTokenSet = (tokenSet) => {
   xero.tokenSet = tokenSet;
-  console.log('Token set stored successfully');
 };

@@ -12,25 +12,17 @@ export function configureServer() {
 
   app.use(cors());
   app.use(express.json());
+  app.use(express.static(join(projectRoot, 'dist')));
 
-  // Always serve static files from the dist directory
-  const distPath = join(projectRoot, 'dist');
-  console.log('Serving static files from:', distPath);
-
-  app.use(express.static(distPath));
-
-  // API routes will be added in index.js
-
-  // Serve index.html for all non-API routes (SPA support)
+  // SPA support - serve index.html for non-API routes
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/')) {
       next();
       return;
     }
-    res.sendFile(join(distPath, 'index.html'));
+    res.sendFile(join(projectRoot, 'dist', 'index.html'));
   });
 
-  // Error handling middleware should be last
   app.use(errorHandler);
 
   return app;

@@ -8,6 +8,27 @@ export default function App() {
   const { xeroAccounts, actualCategories, isLoading, error } = useCategories();
   const [mappings, setMappings] = useState<CategoryMapping[]>([]);
 
+  // Load existing mappings
+  useEffect(() => {
+    async function loadMappings() {
+      try {
+        const response = await fetch('/api/mappings');
+        if (!response.ok) {
+          throw new Error('Failed to load existing mappings');
+        }
+        const existingMappings = await response.json();
+        setMappings(existingMappings.map(m => ({
+          xeroAccountId: m.xero_account_id,
+          actualCategoryId: m.actual_category_id
+        })));
+      } catch (error) {
+        console.error('Error loading mappings:', error);
+      }
+    }
+
+    loadMappings();
+  }, []);
+
   // Automatically redirect to Xero auth if not authenticated
   useEffect(() => {
     if (error?.message?.includes('Not authenticated with Xero')) {

@@ -8,7 +8,6 @@ import mappingsRoutes from './routes/mappings.routes.js';
 const app = configureServer();
 const port = process.env.PORT || 3000;
 
-// Configure routes
 app.use('/api/xero', xeroRoutes);
 app.use('/api/actual', actualRoutes);
 app.use('/api/mappings', mappingsRoutes);
@@ -16,8 +15,6 @@ app.use('/api/mappings', mappingsRoutes);
 async function startServer() {
   try {
     let serverUrl = `http://localhost:${port}`;
-
-    // Setup ngrok in development
     if (process.env.NODE_ENV === 'development') {
       serverUrl = await setupNgrok();
     }
