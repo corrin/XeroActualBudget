@@ -1,4 +1,4 @@
-import { saveMapping, getAllMappings, getMapping } from '../db/index.js';
+import { saveMapping, getAllMappings } from '../db/index.js';
 
 export async function saveMappings(req, res) {
   try {
@@ -6,8 +6,12 @@ export async function saveMappings(req, res) {
     console.log('Saving mappings:', mappings);
 
     for (const mapping of mappings) {
-      await saveMapping(mapping.xeroAccountId, mapping.actualCategoryId);
+      await saveMapping({
+        xero_account_id: mapping.xeroAccountId,
+        actual_category_id: mapping.actualCategoryId
+      });
     }
+
     const allMappings = await getAllMappings();
     console.log('Current mappings after save:', allMappings);
 

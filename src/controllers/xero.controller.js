@@ -1,4 +1,6 @@
-import { xero } from '../config/xero.js';
+// src/controllers/xero.controller.js
+import { fetchAllAccounts, saveTokenSet, loadTokenSet } from '../services/xero.service.js';
+import { saveXeroAccount } from '../db/index.js';
 
 export async function connectXero(req, res) {
   try {
@@ -26,6 +28,10 @@ export async function handleCallback(req, res) {
     }
 
     xero.setTokenSet(tokenSet);
+    await saveTokenSet(tokenSet);
+
+    console.log('Token set saved:', tokenSet);
+
     res.redirect('/');
   } catch (error) {
     console.error('Error during Xero callback:', error);
@@ -38,30 +44,24 @@ export async function handleCallback(req, res) {
 
 export async function getAccounts(req, res) {
   try {
-    if (!xero.tokenSet?.access_token) {
-      return res.status(401).json({
-        error: 'Not authenticated with Xero',
-        details: 'Please connect to Xero first'
+    await loadTokenSet();
+
+    const accounts = await fetchAllAccounts();
+
+    // Log the accounts being saved
+    console.log('Fetched Xero accounts:', accounts);
+
+    accounts.forEach(account => {
+      saveXeroAccount({
+        id: account.AccountID,
+        name: account.Name,
+        type: account.Type,
+        status: account.Status,
+        updated_datetime: account.UpdatedDateUTC
+          ? new Date(account.UpdatedDateUTC).toISOString()
+          : '1970-01-01T00:00:00.000Z'
       });
-    }
-
-    const tenants = await xero.updateTenants();
-
-    if (!tenants?.length) {
-      throw new Error('No Xero organizations found');
-    }
-
-    const response = await xero.accountingApi.getAccounts(tenants[0].tenantId);
-
-    // Filter out bank accounts and sort by group then name
-  const accounts = response.body.accounts
-        //.filter(account => account.type !== 'BANK')  // Better to include everything and map it to ignore
-        .sort((a, b) => {
-          if (a.type !== b.type) {
-            return a.type.localeCompare(b.type);
-          }
-          return a.name.localeCompare(b.name);
-        });
+    });
 
     res.json(accounts);
   } catch (error) {

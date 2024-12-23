@@ -7,12 +7,6 @@ import fs from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbPath = join(__dirname, '../../data/mappings.db');
 
-// Ensure data directory exists
-const dataDir = dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
 // Initialize database
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
@@ -23,48 +17,63 @@ db.exec(schema);
 
 // Prepared statements
 const statements = {
-  getMappings: db.prepare('SELECT * FROM category_mappings'),
-  getMapping: db.prepare('SELECT * FROM category_mappings WHERE xero_account_id = ?'),
-  insertMapping: db.prepare(`
-    INSERT INTO category_mappings (xero_account_id, actual_category_id)
-    VALUES (@xeroAccountId, @actualCategoryId)
-    ON CONFLICT(xero_account_id) 
-    DO UPDATE SET actual_category_id = @actualCategoryId, updated_at = CURRENT_TIMESTAMP
+  getAllXeroAccounts: db.prepare('SELECT * FROM xero_accounts'),
+  insertXeroAccount: db.prepare(`
+    INSERT INTO xero_accounts (id, name, type, status, updated_datetime)
+    VALUES (@id, @name, @type, @status, @updated_datetime)
+    ON CONFLICT(id) DO UPDATE SET
+      name = @name,
+      type = @type,
+      status = @status,
+      updated_datetime = @updated_datetime
   `),
-  deleteMapping: db.prepare('DELETE FROM category_mappings WHERE xero_account_id = ?')
+
+  getAllActualCategories: db.prepare('SELECT * FROM actual_categories'),
+  insertActualCategory: db.prepare(`
+    INSERT INTO actual_categories (id, name, group_name)
+    VALUES (@id, @name, @group_name)
+    ON CONFLICT(id) DO UPDATE SET
+      name = @name,
+      group_name = @group_name
+  `),
+
+  getAllMappings: db.prepare('SELECT * FROM xero_to_actual_category_mapping'),
+  insertMapping: db.prepare(`
+    INSERT INTO xero_to_actual_category_mapping (xero_account_id, actual_category_id)
+    VALUES (@xero_account_id, @actual_category_id)
+    ON CONFLICT(xero_account_id, actual_category_id) DO NOTHING
+  `),
+  deleteMapping: db.prepare('DELETE FROM xero_to_actual_category_mapping WHERE xero_account_id = ? AND actual_category_id = ?')
 };
 
+// Database functions
+export function getAllXeroAccounts() {
+  return statements.getAllXeroAccounts.all();
+}
+
+export function saveXeroAccount(account) {
+  return statements.insertXeroAccount.run(account);
+}
+
+export function getAllActualCategories() {
+  return statements.getAllActualCategories.all();
+}
+
+export function saveActualCategory(category) {
+  return statements.insertActualCategory.run(category);
+}
+
 export function getAllMappings() {
-  return statements.getMappings.all();
+  return statements.getAllMappings.all();
 }
 
-export function getMapping(xeroAccountId) {
-  return statements.getMapping.get(xeroAccountId);
+export function saveMapping(mapping) {
+  return statements.insertMapping.run(mapping);
 }
 
-export function saveMapping(xeroAccountId, actualCategoryId) {
-  return statements.insertMapping.run({
-    xeroAccountId,
-    actualCategoryId
-  });
-}
-
-export function saveMappings(mappings) {
-  const insertMany = db.transaction((items) => {
-    for (const { xeroAccountId, actualCategoryId } of items) {
-      statements.insertMapping.run({ xeroAccountId, actualCategoryId });
-    }
-  });
-  
-  insertMany(mappings);
-}
-
-export function deleteMapping(xeroAccountId) {
-  return statements.deleteMapping.run(xeroAccountId);
+export function deleteMapping(xeroAccountId, actualCategoryId) {
+  return statements.deleteMapping.run(xeroAccountId, actualCategoryId);
 }
 
 // Ensure clean shutdown
 process.on('exit', () => db.close());
-process.on('SIGHUP', () => process.exit(128 + 1));
-process.on('SIGINT', () => process.exit(128 + 2));
-process.on('SIGTERM', () => process.exit(128 + 15));

@@ -1,20 +1,19 @@
-import { getActiveAccounts } from '../services/xero.service.js';
-import { syncCategories } from '../services/actual.service.js';
+import { getAllXeroAccounts, getAllActualCategories, getAllMappings } from '../db/index.js';
 
 export async function syncXeroAccounts(req, res) {
   try {
-    const accounts = await getActiveAccounts();
-    await syncCategories(accounts);
-    res.json({ 
-      success: true, 
-      message: 'Categories synced successfully',
-      count: accounts.length 
-    });
+    console.log('Starting sync...');
+    const xeroAccounts = getAllXeroAccounts();
+    const actualCategories = getAllActualCategories();
+    const mappings = getAllMappings();
+
+    console.log('Sync data:', { xeroAccounts, actualCategories, mappings });
+
+    // Your sync logic here...
+
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error syncing categories:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
+    console.error('Error during sync:', error);
+    res.status(500).json({ error: error.message });
   }
 }
