@@ -2,6 +2,7 @@
   "type": "module",
   "dependencies": {
     "@actual-app/api": "^24.12.0",
+    "axios": "^1.7.9",
     "better-sqlite3": "^9.2.2",
     "concurrently": "8.2.0",
     "cors": "2.8.5",
@@ -15,21 +16,24 @@
     "xero-node": "4.36.0"
   },
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --handle-input --prefix \"[{name}]\" --names \"server,client\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm:dev:server\" \"npm:dev:client\"",
     "build": "vite build",
+    "dev": "cross-env NODE_ENV=development node --no-deprecation src/index.js & vite",
     "dev:client": "vite",
-    "dev:server": "cross-env NODE_ENV=development node --no-deprecation src/index.js",
-    "dev:bolt": "cross-env NODE_ENV=development BOLT_ENV=true node --no-deprecation src/index.js",
-    "dev:local": "concurrently --kill-others-on-fail --handle-input --prefix \"[{name}]\" --names \"server,client\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm run dev:bolt\" \"npm:dev:client\"",
-    "dev:with-build": "npm run build && npm run dev:server",
+    "dev:server": "nodemon src/index.js",
     "serve": "vite preview",
-    "start": "cross-env NODE_ENV=production node --no-deprecation src/index.js"
+    "start": "cross-env NODE_ENV=production node src/index.js",
+    "postinstall": "npm run build"
+  },
+  "overrides": {
+    "xero-node/request": "axios",
+    "request": "axios"
   },
   "devDependencies": {
     "@types/react": "18.2.20",
     "@types/react-dom": "18.2.7",
     "@vitejs/plugin-react": "4.0.4",
     "autoprefixer": "10.4.15",
+    "nodemon": "3.0.1",
     "postcss": "8.4.28",
     "tailwindcss": "3.3.3",
     "typescript": "5.1.6",

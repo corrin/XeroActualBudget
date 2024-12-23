@@ -1,5 +1,6 @@
 import { XeroClient } from 'xero-node';
 import dotenv from 'dotenv';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -17,7 +18,8 @@ export const xero = new XeroClient({
   clientSecret: process.env.XERO_CLIENT_SECRET,
   redirectUris: [process.env.XERO_REDIRECT_URI],
   scopes: scopes,
-  httpTimeout: 3000
+  httpTimeout: 3000,
+  httpClient: axios,
 });
 
 xero.setTokenSet = (tokenSet) => {

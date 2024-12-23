@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {CategoryMapper} from './components/CategoryMapper';
 import {useCategories} from './hooks/useCategories';
-import {saveMappings} from './services/api';
 import {CategoryMapping} from './types';
 
 export default function App() {
@@ -13,15 +12,18 @@ export default function App() {
     useEffect(() => {
         async function loadMappings() {
             try {
+                console.log('Fetching mappings...');
                 const response = await fetch('/api/mappings');
                 if (!response.ok) {
                     throw new Error('Failed to load existing mappings');
                 }
                 const existingMappings = await response.json();
+                console.log('Fetched mappings:', existingMappings);
                 setMappings(existingMappings.map(m => ({
                     xeroAccountId: m.xero_account_id,
                     actualCategoryId: m.actual_category_id
                 })));
+                console.log('Set mappings state triggered.');
             } catch (error) {
                 console.error('Error loading mappings:', error);
             }
@@ -38,7 +40,7 @@ export default function App() {
     }, [error]);
 
     const handleMappingChange = (xeroAccountId: string, actualCategoryId: string) => {
-        console.log('handleMappingChange called with:', {xeroAccountId, actualCategoryId});
+        console.log(`Mapped Xero Account ${xeroAccountId} to Actual Category ${actualCategoryId}`);
         setMappings(prev => {
             const existing = prev.findIndex(m => m.xeroAccountId === xeroAccountId);
             if (existing >= 0) {
@@ -50,17 +52,6 @@ export default function App() {
             }
             return [...prev, {xeroAccountId, actualCategoryId}];
         });
-    };
-
-    const handleSave = async () => {
-        try {
-            console.log('Mappings being sent:', mappings);
-            await saveMappings(mappings);
-            alert('Mappings saved successfully!');
-        } catch (error) {
-            alert('Failed to save mappings');
-            console.error('Save error:', error);
-        }
     };
 
     // Show loading state
@@ -76,15 +67,19 @@ export default function App() {
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Category Mapping</h1>
             <div className="space-y-4">
-                {console.log('xeroAccounts before map:', xeroAccounts)}
-                {xeroAccounts.map(account => (
-                    <CategoryMapper
-                        key={account.id}
-                        xeroAccount={account}
-                        actualCategories={actualCategories}
-                        onMappingChange={handleMappingChange}
-                    />
-                ))}
+                {xeroAccounts.map((account) => {
+                    const mapping = mappings.find((m) => m.xeroAccountId === account.accountID);
+
+                    return (
+                        <CategoryMapper
+                            key={account.accountID}
+                            xeroAccount={account}
+                            actualCategories={actualCategories}
+                            onMappingChange={handleMappingChange}
+                            selectedCategoryId={mapping?.actualCategoryId || null} // Pass the selected category
+                        />
+                    );
+                })}
             </div>
         </div>
     );

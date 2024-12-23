@@ -15,5 +15,15 @@ export default defineConfig({
     emptyOutDir: true,
     // Generate sourcemaps for better debugging
     sourcemap: true
+  },
+  server: {
+    // Enable polling for file changes
+    watch: {
+      usePolling: true,
+    },
+    // Allow access via LAN (optional)
+    host: true,
+    // Ensure consistent port (optional)
+    port: 3001,
   }
 });

@@ -12,7 +12,6 @@ export async function fetchXeroAccounts(): Promise<XeroAccount[]> {
   }
 
   const data = await response.json();
-  console.log('Successfully fetched Xero accounts:', data);
   return data;
 }
 
