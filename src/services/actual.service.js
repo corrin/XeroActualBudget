@@ -94,13 +94,18 @@ export async function initializeActual() {
   return true;
 }
 
+// src/services/actual.service.js
 export async function getActualCategories() {
   try {
-    console.log('Getting Actual Budget categories...');
     await initializeActual();
     const categories = await actual.getCategories();
-    console.log('Successfully retrieved categories:', categories);
-    return categories;
+    const groups = await actual.getCategoryGroups();
+
+    // Join categories with their group names
+    return categories.map(cat => ({
+      ...cat,
+      group: groups.find(g => g.id === cat.group_id)?.name || 'Ungrouped'
+    }));
   } catch (error) {
     console.error('Error fetching Actual categories:', error);
     throw error;

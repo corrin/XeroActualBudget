@@ -54,14 +54,14 @@ export async function getAccounts(req, res) {
     const response = await xero.accountingApi.getAccounts(tenants[0].tenantId);
 
     // Filter out bank accounts and sort by group then name
-    const accounts = response.body.accounts
-      .filter(account => account.type !== 'BANK')
-      .sort((a, b) => {
-        if (a.class !== b.class) {
-          return a.class.localeCompare(b.class);
-        }
-        return a.name.localeCompare(b.name);
-      });
+  const accounts = response.body.accounts
+        //.filter(account => account.type !== 'BANK')  // Better to include everything and map it to ignore
+        .sort((a, b) => {
+          if (a.type !== b.type) {
+            return a.type.localeCompare(b.type);
+          }
+          return a.name.localeCompare(b.name);
+        });
 
     res.json(accounts);
   } catch (error) {
