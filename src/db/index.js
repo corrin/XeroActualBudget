@@ -19,9 +19,9 @@ db.exec(schema);
 const statements = {
   getAllXeroAccounts: db.prepare('SELECT * FROM xero_accounts'),
   insertXeroAccount: db.prepare(`
-    INSERT INTO xero_accounts (id, name, type, status, updated_datetime)
-    VALUES (@id, @name, @type, @status, @updated_datetime)
-    ON CONFLICT(id) DO UPDATE SET
+    INSERT INTO xero_accounts (xero_account_id, name, type, status, updated_datetime)
+    VALUES (@xero_account_id, @name, @type, @status, @updated_datetime)
+    ON CONFLICT(xero_account_id) DO UPDATE SET
       name = @name,
       type = @type,
       status = @status,
@@ -52,7 +52,16 @@ export function getAllXeroAccounts() {
 }
 
 export function saveXeroAccount(account) {
-  return statements.insertXeroAccount.run(account);
+  console.log('Attempting to save Xero account:', account);
+  return statements.insertXeroAccount.run({
+    xero_account_id: account.accountID,
+    name: account.name,
+    type: account.type,
+    status: account.status,
+    updated_datetime: account.updatedDateUTC
+      ? new Date(account.updatedDateUTC).toISOString()
+      : '1970-01-01T00:00:00.000Z',
+  });
 }
 
 export function getAllActualCategories() {

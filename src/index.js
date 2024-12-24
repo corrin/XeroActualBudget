@@ -4,6 +4,7 @@ import { setupNgrok } from './config/ngrok.js';
 import xeroRoutes from './routes/xero.routes.js';
 import actualRoutes from './routes/actual.routes.js';
 import mappingsRoutes from './routes/mappings.routes.js';
+import syncRoutes from './routes/sync.routes.js';
 
 const app = configureServer();
 const port = process.env.PORT || 3000;
@@ -11,6 +12,7 @@ const port = process.env.PORT || 3000;
 app.use('/api/xero', xeroRoutes);
 app.use('/api/actual', actualRoutes);
 app.use('/api/mappings', mappingsRoutes);
+app.use('/api/sync', syncRoutes);
 
 async function startServer() {
   try {

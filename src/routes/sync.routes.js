@@ -1,8 +1,8 @@
 import express from 'express';
-import { syncXeroAccounts } from '../controllers/sync.controller.js';
+import { syncXeroJournals } from '../controllers/sync.controller.js';
 
 const router = express.Router();
 
-router.post('/sync/accounts', syncXeroAccounts);
+router.post('/journals', syncXeroJournals);
 
 export default router;

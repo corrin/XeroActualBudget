@@ -25,7 +25,6 @@
     "postinstall": "npm run build"
   },
   "overrides": {
-    "xero-node/request": "axios",
     "request": "axios"
   },
   "devDependencies": {

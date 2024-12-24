@@ -1,19 +1,27 @@
-import { getAllXeroAccounts, getAllActualCategories, getAllMappings } from '../db/index.js';
+import { fetchJournals } from '../services/xero.service.js';
+import { syncJournals } from '../services/actual.service.js';
+import { getAllMappings } from '../db/index.js';
 
-export async function syncXeroAccounts(req, res) {
+export async function syncXeroJournals(req, res, next) {
   try {
-    console.log('Starting sync...');
-    const xeroAccounts = getAllXeroAccounts();
-    const actualCategories = getAllActualCategories();
-    const mappings = getAllMappings();
+    const startDate = req.query.startDate; // Expecting start date as a query parameter
+    if (!startDate) {
+      return res.status(400).send({ error: 'Start date is required' });
+    }
 
-    console.log('Sync data:', { xeroAccounts, actualCategories, mappings });
+    const journals = await fetchJournals(startDate);
+    const mappings = await getAllMappings(); // Fetch account mappings
 
-    // Your sync logic here...
+    // Convert mappings to a format suitable for the syncJournals function
+    const formattedMappings = mappings.reduce((acc, mapping) => {
+      acc[mapping.xeroAccountId] = mapping.actualCategoryId;
+      return acc;
+    }, {});
 
-    res.json({ success: true });
+    await syncJournals(journals, formattedMappings);
+
+    res.send({ message: 'Xero journals synced successfully' });
   } catch (error) {
-    console.error('Error during sync:', error);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }

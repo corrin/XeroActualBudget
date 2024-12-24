@@ -1,3 +1,5 @@
+// src/services/actual.service.js
+
 import actual from '@actual-app/api';
 import dotenv from 'dotenv';
 import { join } from 'path';
@@ -125,6 +127,39 @@ export async function syncCategories(mappings) {
     console.log('Categories synced successfully');
   } catch (error) {
     console.error('Error syncing categories:', error);
+    throw error;
+  }
+}
+
+export async function syncJournals(journals, mappings) {
+  try {
+    console.log('Starting journal sync...');
+    await initializeActual();
+
+    for (const journal of journals) {
+      for (const line of journal.journalLines) {
+        const actualCategoryId = mappings[line.accountId];
+        if (actualCategoryId) {
+          const amount = line.creditAmount - line.debitAmount;
+          const date = new Date(journal.journalDate).toISOString().split('T')[0];
+          const description = journal.narration || 'Xero Journal';
+
+          console.log(`Creating transaction for journal ${journal.journalNumber}, account ${line.accountCode}: ${amount}`);
+          await actual.createTransaction({
+            account: actualCategoryId,
+            amount,
+            date,
+            description,
+          });
+        } else {
+          console.warn(`No mapping found for Xero account code: ${line.accountCode}`);
+        }
+      }
+    }
+
+    console.log('Journals synced successfully');
+  } catch (error) {
+    console.error('Error syncing journals:', error);
     throw error;
   }
 }
