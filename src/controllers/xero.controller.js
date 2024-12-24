@@ -1,5 +1,4 @@
-// src/controllers/xero.controller.js
-import { fetchAllAccounts, saveTokenSet, loadTokenSet } from '../services/xero.service.js';
+import { fetchAllAccounts } from '../services/xero.service.js';
 import { saveXeroAccount } from '../db/index.js';
 
 export async function connectXero(req, res) {
@@ -27,10 +26,13 @@ export async function handleCallback(req, res) {
       throw new Error('No valid token received from Xero');
     }
 
-    xero.setTokenSet(tokenSet);
-    await saveTokenSet(tokenSet);
+    xero.setTokenSet = (tokenSet) => {
+      xero.tokenSet = tokenSet;
+    };
 
-    console.log('Token set saved:', tokenSet);
+    xero.setTokenSet(tokenSet);
+
+    console.log('Token set received and set:', tokenSet);
 
     res.redirect('/');
   } catch (error) {
@@ -44,7 +46,9 @@ export async function handleCallback(req, res) {
 
 export async function getAccounts(req, res) {
   try {
-    await loadTokenSet();
+    if (!xero.tokenSet?.access_token) {
+      throw new Error('Not authenticated with Xero');
+    }
 
     const accounts = await fetchAllAccounts();
 
